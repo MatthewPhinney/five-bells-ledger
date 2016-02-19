@@ -2,14 +2,12 @@
 
 const bcrypt = require('bcrypt')
 const Model = require('five-bells-shared').Model
-const PersistentModelMixin = require('five-bells-shared').PersistentModelMixin
+const PersistentModelMixin = require('five-bells-shared').PersistentKnexModelMixin
 const uri = require('../../services/uriManager')
 const validator = require('../../services/validator')
 const Entry = require('./entry').Entry
-const EntryGroup = require('./entry-group').EntryGroup
 
-const Sequelize = require('sequelize')
-const sequelize = require('../../services/db')
+const knex = require('../../lib/knex').knex
 
 function hashPassword (password) {
   // cache hashes of passwords used in tests to speed up tests 4X
@@ -69,6 +67,8 @@ class Account extends Model {
   }
 
   static convertFromPersistent (data) {
+    data.is_disabled = Boolean(data.is_disabled)
+    data.is_admin = Boolean(data.is_admin)
     delete data.created_at
     delete data.updated_at
     return data
@@ -76,21 +76,13 @@ class Account extends Model {
 
   static convertToPersistent (data) {
     data.balance = Number(data.balance)
+    data.is_disabled = Number(data.is_disabled || 0)
+    data.is_admin = Number(data.is_admin || 0)
     return data
   }
 
-  static findById (id, options) {
-    return Account.findOne({
-      where: {primary: id},
-      transaction: options && options.transaction
-    })
-  }
-
   static findByName (name, options) {
-    return Account.findOne({
-      where: {name: name},
-      transaction: options && options.transaction
-    })
+    return Account.findByKey('name', name, options)
   }
 
   static findByFingerprint (fingerprint, options) {
@@ -110,42 +102,11 @@ class Account extends Model {
     const data = this.getDataExternal()
     return { id: data.id, name: data.name }
   }
-
-  * findEntry (date) {
-    const group = yield EntryGroup.findOne({
-      where: { created_at: { $lte: date } },
-      order: 'created_at DESC',
-      limit: 1
-    })
-    if (!group) return
-    return Entry.findOne({
-      where: {
-        account: this.primary,
-        entry_group: { $lte: group.id }
-      },
-      order: 'entry_group DESC',
-      limit: 1
-    })
-  }
 }
 
 Account.validateExternal = validator.create('Account')
 
-PersistentModelMixin(Account, sequelize, {
-  primary: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-  name: { type: Sequelize.STRING, unique: true },
-  balance: Sequelize.DECIMAL(10, 2),
-  connector: Sequelize.STRING(1024),
-  password_hash: Sequelize.STRING,
-  public_key: Sequelize.TEXT,
-  is_admin: Sequelize.BOOLEAN,
-  is_disabled: Sequelize.BOOLEAN,
-  fingerprint: Sequelize.STRING
-},
-  {
-    indexes: [
-      {fields: ['fingerprint']}
-    ]
-  })
+Account.tableName = 'accounts'
+PersistentModelMixin(Account, knex)
 
 exports.Account = Account

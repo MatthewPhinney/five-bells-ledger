@@ -6,13 +6,14 @@ const Account = require('./account').Account
 const db = require('../../services/db')
 
 function * getAccounts (options) {
-  return (yield Account.findAll(options))
+  const jsonAccounts = yield Account.findAll(options)
+  return jsonAccounts.map(Account.fromDatabaseModel.bind(Account))
 }
 
 function * getConnectorAccounts (options) {
-  return (yield Account.findAll(_.assign({}, options, {
-    where: { connector: { $ne: null } }
-  })))
+  const jsonAccounts = yield Account.findAll(options)
+  return jsonAccounts.filter(account => account.connector)
+    .map(Account.fromDatabaseModel.bind(Account))
 }
 
 function * getAccount (name, options) {

@@ -1,6 +1,6 @@
 {
   "name": "five-bells-ledger",
-  "version": "10.0.2",
+  "version": "10.1.0",
   "description": "Five Bells ledger reference implementation",
   "keywords": [
     "interledger",
@@ -32,7 +32,8 @@
     "co-request": "^1.0.0",
     "deep-diff": "^0.3.0",
     "five-bells-condition": "~2.0.0",
-    "five-bells-shared": "^10.1.0",
+    "five-bells-shared": "^11.0.0",
+    "knex": "^0.10.0",
     "koa": "^1.0.0",
     "koa-compress": "^1.0.6",
     "koa-cors": "0.0.16",
@@ -51,11 +52,7 @@
     "passport-http": "^0.3.0",
     "passport-http-signature": "^1.0.0",
     "priorityqueuejs": "^1.0.0",
-    "sequelize": "3.14.0",
-    "sequelize-cli": "^2.0.0",
-    "sequelize-json": "^2.1.0",
     "tweetnacl": "^0.13.1",
-    "umzug": "^1.6.0",
     "uuid4": "^1.0.0"
   },
   "optionalDependencies": {

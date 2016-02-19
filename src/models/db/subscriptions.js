@@ -9,12 +9,11 @@ function * getSubscription (id, options) {
   return (yield Subscription.findById(id, options))
 }
 
-function * getMatchingSubscription (subscription, options) {
-  return (yield Subscription.findOne({where: {
+function * getMatchingSubscriptions (subscription, options) {
+  return (yield Subscription.findWhere({
     event: subscription.event,
     subject: subscription.subject,
     target: subscription.target
-  }
   }, options))
 }
 
@@ -25,7 +24,12 @@ function * _upsertSubscription (subscription, options) {
   // correct HTTP status code we unfortunately have to do this in two steps.
   const existingSubscription = yield Subscription.findById(
     subscription.id, options)
-  yield Subscription.upsert(subscription, options)
+  if (existingSubscription) {
+    existingSubscription.setData(subscription)
+    yield existingSubscription.save(options)
+  } else {
+    yield Subscription.create(subscription, options)
+  }
   return Boolean(existingSubscription)
 }
 
@@ -43,12 +47,12 @@ function * upsertSubscription (subscription, options) {
 }
 
 function * deleteSubscription (id, options) {
-  Subscription.DbModel.destroy(_.assign({}, options, {where: {id: id}}))
+  yield Subscription.destroy(_.assign({}, options, {where: {id: id}}))
 }
 
 module.exports = {
   getSubscription,
-  getMatchingSubscription,
+  getMatchingSubscriptions,
   upsertSubscription,
   deleteSubscription,
   transaction: db.transaction.bind(db)

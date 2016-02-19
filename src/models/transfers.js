@@ -286,7 +286,7 @@ function * fulfillTransfer (transferId, fulfillment) {
     const isExecution = validateConditionFulfillment(transfer, fulfillment)
 
     if (isExecution && transfer.state === 'executed' || !isExecution && transfer.state === 'rejected') {
-      return (yield fulfillments.getFulfillment(transferId)).getDataExternal()
+      return (yield fulfillments.getFulfillment(transferId, {transaction})).getDataExternal()
     }
 
     if (isExecution) {

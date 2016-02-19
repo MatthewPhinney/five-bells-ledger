@@ -6,7 +6,7 @@ const ConditionFulfillment = require('./conditionFulfillment').ConditionFulfillm
 const db = require('../../services/db')
 
 function * getFulfillment (transferId, options) {
-  return (yield ConditionFulfillment.findByTransfer(transferId, options))
+  return yield ConditionFulfillment.findByTransfer(transferId, options)
 }
 
 function * _upsertFulfillment (fulfillment, options) {

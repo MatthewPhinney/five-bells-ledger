@@ -31,9 +31,9 @@ function * setSubscription (subscription, requestingUser) {
 
   let existed
   yield db.transaction(function * (transaction) {
-    const duplicate = yield db.getMatchingSubscription(
+    const duplicates = yield db.getMatchingSubscriptions(
       subscription, {transaction})
-    if (duplicate) {
+    if (duplicates.length > 0) {
       throw new UnprocessableEntityError(
         'Subscription with same event, subject, and target already exists')
     }

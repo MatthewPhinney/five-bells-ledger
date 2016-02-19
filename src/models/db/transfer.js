@@ -3,14 +3,11 @@
 const _ = require('lodash')
 
 const Model = require('five-bells-shared').Model
-const PersistentModelMixin = require('five-bells-shared').PersistentModelMixin
+const PersistentModelMixin = require('five-bells-shared').PersistentKnexModelMixin
 const validator = require('../../services/validator')
 const uri = require('../../services/uriManager')
 
-const Sequelize = require('sequelize')
-const JsonField = require('sequelize-json')
-const sequelize = require('../../services/db')
-
+const knex = require('../../lib/knex').knex
 const FINAL_STATES = ['executed', 'failed', 'rejected']
 
 class Transfer extends Model {
@@ -72,11 +69,44 @@ class Transfer extends Model {
   static convertFromPersistent (data) {
     delete data.created_at
     delete data.updated_at
+    if (typeof data.credits === 'string') {
+      data.credits = JSON.parse(data.credits)
+    }
+    if (typeof data.debits === 'string') {
+      data.debits = JSON.parse(data.debits)
+    }
+    if (typeof data.execution_condition === 'string') {
+      data.execution_condition = JSON.parse(data.execution_condition)
+    }
+    if (typeof data.cancellation_condition === 'string') {
+      data.cancellation_condition = JSON.parse(data.cancellation_condition)
+    }
+    if (typeof data.additional_info === 'string') {
+      data.additional_info = JSON.parse(data.additional_info)
+    }
+    if (data.expires_at) {
+      data.expires_at = new Date(data.expires_at)
+    }
     data = _.omit(data, _.isNull)
     return data
   }
 
   static convertToPersistent (data) {
+    if (typeof data.credits !== 'string') {
+      data.credits = JSON.stringify(data.credits)
+    }
+    if (typeof data.debits !== 'string') {
+      data.debits = JSON.stringify(data.debits)
+    }
+    if (typeof data.execution_condition !== 'string') {
+      data.execution_condition = JSON.stringify(data.execution_condition)
+    }
+    if (typeof data.cancellation_condition !== 'string') {
+      data.cancellation_condition = JSON.stringify(data.cancellation_condition)
+    }
+    if (typeof data.additional_info !== 'string') {
+      data.additional_info = JSON.stringify(data.additional_info)
+    }
     return data
   }
 
@@ -87,24 +117,7 @@ class Transfer extends Model {
 
 Transfer.validateExternal = validator.create('Transfer')
 
-PersistentModelMixin(Transfer, sequelize, {
-  id: {
-    type: Sequelize.UUID,
-    primaryKey: true
-  },
-  ledger: Sequelize.STRING(1024),
-  debits: JsonField(sequelize, 'Transfer', 'debits'),
-  credits: JsonField(sequelize, 'Transfer', 'credits'),
-  additional_info: JsonField(sequelize, 'Transfer', 'additional_info'),
-  state: Sequelize.ENUM('proposed', 'prepared', 'executed', 'rejected'),
-  rejection_reason: Sequelize.ENUM('expired', 'cancelled'),
-  execution_condition: JsonField(sequelize, 'Transfer', 'execution_condition'),
-  cancellation_condition: JsonField(sequelize, 'Transfer', 'cancellation_condition'),
-  expires_at: Sequelize.DATE,
-  proposed_at: Sequelize.DATE,
-  prepared_at: Sequelize.DATE,
-  executed_at: Sequelize.DATE,
-  rejected_at: Sequelize.DATE
-})
+Transfer.tableName = 'transfers'
+PersistentModelMixin(Transfer, knex)
 
 exports.Transfer = Transfer

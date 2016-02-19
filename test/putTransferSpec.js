@@ -29,8 +29,9 @@ describe('PUT /transfers/:id', function () {
 
   beforeEach(function *() {
     appHelper.create(this, app)
+    yield dbHelper.init()
 
-    this.clock = sinon.useFakeTimers(START_DATE, 'Date', 'setTimeout', 'setImmediate')
+    this.clock = sinon.useFakeTimers(START_DATE, 'Date')
 
     // Define example data
     this.exampleTransfer = _.cloneDeep(require('./data/transfers/simple'))
@@ -303,7 +304,7 @@ describe('PUT /transfers/:id', function () {
     /* Disable bobs's account */
     const bobAccount = yield Account.findByName(accounts.bob.name)
     bobAccount.is_disabled = true
-    bobAccount.save()
+    yield bobAccount.save()
 
     transferNoAuthorization.debits[0].authorized = true
 
@@ -909,7 +910,7 @@ describe('PUT /transfers/:id', function () {
   /* Subscriptions */
   it('should trigger subscriptions', function *() {
     const subscription = require('./data/subscription1.json')
-    yield Subscription.fromDataExternal(subscription).create()
+    yield Subscription.createExternal(subscription)
 
     const transfer = this.exampleTransfer
     const transferResult = _.assign({}, transfer, {
