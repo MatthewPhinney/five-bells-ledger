@@ -6,6 +6,7 @@ const Model = require('five-bells-shared').Model
 const PersistentModelMixin = require('five-bells-shared').PersistentKnexModelMixin
 const validator = require('../../services/validator')
 const uri = require('../../services/uriManager')
+const moment = require('moment')
 
 const knex = require('../../lib/knex').knex
 const FINAL_STATES = ['executed', 'failed', 'rejected']
@@ -87,6 +88,18 @@ class Transfer extends Model {
     if (data.expires_at) {
       data.expires_at = new Date(data.expires_at)
     }
+    if (data.proposed_at) {
+      data.proposed_at = moment(data.proposed_at).toISOString()
+    }
+    if (data.prepared_at) {
+      data.prepared_at = moment(data.prepared_at).toISOString()
+    }
+    if (data.executed_at) {
+      data.executed_at = moment(data.executed_at).toISOString()
+    }
+    if (data.rejected_at) {
+      data.rejected_at = moment(data.rejected_at).toISOString()
+    }
     data = _.omit(data, _.isNull)
     return data
   }
@@ -106,6 +119,18 @@ class Transfer extends Model {
     }
     if (typeof data.additional_info !== 'string') {
       data.additional_info = JSON.stringify(data.additional_info)
+    }
+    if (data.proposed_at) {
+      data.proposed_at = new Date(data.proposed_at)
+    }
+    if (data.prepared_at) {
+      data.prepared_at = new Date(data.prepared_at)
+    }
+    if (data.executed_at) {
+      data.executed_at = new Date(data.executed_at)
+    }
+    if (data.rejected_at) {
+      data.rejected_at = new Date(data.rejected_at)
     }
     return data
   }

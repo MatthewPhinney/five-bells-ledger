@@ -17,14 +17,14 @@ function createAccountsTable (knex) {
 function createFulfillmentsTable (knex) {
   return knex.schema.createTableIfNotExists('fulfillments', table => {
     table.increments()
-    table.uuid('transfer_id').unique().index()
+    table.uuid('transfer_id').unique()
     table.json('condition_fulfillment')
   })
 }
 
 function createEntryGroupsTable (knex) {
   return knex.schema.createTableIfNotExists('entry_groups', table => {
-    table.increments()
+    table.uuid('id').primary()
     table.datetime('created_at')
     table.datetime('updated_at')
   })
@@ -33,7 +33,7 @@ function createEntryGroupsTable (knex) {
 function createEntriesTable (knex) {
   return knex.schema.createTableIfNotExists('entries', table => {
     table.increments()
-    table.integer('entry_group')
+    table.uuid('entry_group').notNullable()
     table.uuid('transfer_id')
     table.integer('account')
     table.decimal('balance', 10, 2)

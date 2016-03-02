@@ -6,6 +6,7 @@ const InsufficientFundsError = require('../errors/insufficient-funds-error')
 const log = require('../services/log')('account balances')
 const Account = require('../models/db/account').Account
 const EntryGroup = require('../models/db/entry-group').EntryGroup
+const uuid = require('uuid4')
 
 function AccountBalances (transaction, transfer) {
   this.transaction = transaction
@@ -49,7 +50,8 @@ AccountBalances.prototype._getAccountBalances = function * (creditsOrDebits) {
 AccountBalances.prototype._applyDebits = function * (accounts) {
   const transaction = this.transaction
   const holdAccount = yield this._holdAccount()
-  const group = yield EntryGroup.create({}, {transaction})
+  const entryGroupId = uuid()
+  yield EntryGroup.create({id: entryGroupId}, {transaction})
   for (let sender of Object.keys(accounts)) {
     const debitAccount = accounts[sender]
 
@@ -65,16 +67,17 @@ AccountBalances.prototype._applyDebits = function * (accounts) {
       ' -> ' + (account.balance - debitAccount.totalAmount))
     account.balance -= debitAccount.totalAmount
     holdAccount.balance += debitAccount.totalAmount
-    yield this._saveAccount(account, group)
+    yield this._saveAccount(account, entryGroupId)
   }
-  yield this._saveAccount(holdAccount, group)
+  yield this._saveAccount(holdAccount, entryGroupId)
 }
 
 // Accounts is the object returned by the _getAccountBalances function
 AccountBalances.prototype._applyCredits = function * (accounts) {
   const transaction = this.transaction
   const holdAccount = yield this._holdAccount()
-  const group = yield EntryGroup.create({}, {transaction})
+  const entryGroupId = uuid()
+  yield EntryGroup.create({id: entryGroupId}, {transaction})
   for (let recipient of Object.keys(accounts)) {
     const creditAccount = accounts[recipient]
 
@@ -83,14 +86,15 @@ AccountBalances.prototype._applyCredits = function * (accounts) {
       ' -> ' + (account.balance + creditAccount.totalAmount))
     account.balance += creditAccount.totalAmount
     holdAccount.balance -= creditAccount.totalAmount
-    yield this._saveAccount(account, group)
+    yield this._saveAccount(account, entryGroupId)
   }
-  yield this._saveAccount(holdAccount, group)
+  yield this._saveAccount(holdAccount, entryGroupId)
 }
 
-AccountBalances.prototype._saveAccount = function * (account, group) {
+AccountBalances.prototype._saveAccount = function * (account, groupId) {
+  console.log('Creating account entry with id: ', groupId)
   yield account.createEntry({
-    entry_group: group.id,
+    entry_group: groupId,
     transfer_id: this.transfer.id
   }, {transaction: this.transaction})
   yield account.save({transaction: this.transaction})

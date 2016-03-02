@@ -9,17 +9,12 @@ const Notification = require('../../src/models/db/notification').Notification
 const Fulfillment = require('../../src/models/db/conditionFulfillment').ConditionFulfillment
 
 exports.init = function * () {
+  yield knex.migrate.rollback(knexConfig).then()
   yield knex.migrate.latest(knexConfig).then()
 }
 
 exports.reset = function * () {
-  yield knex('accounts').truncate().then()
-  yield knex('fulfillments').truncate().then()
-  yield knex('entries').truncate().then()
-  yield knex('entry_groups').truncate().then()
-  yield knex('notifications').truncate().then()
-  yield knex('subscriptions').truncate().then()
-  yield knex('transfers').truncate().then()
+  yield knex.migrate.rollback(knexConfig).then()
 }
 
 exports.addAccounts = function * (accounts) {

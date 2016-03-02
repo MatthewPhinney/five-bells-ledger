@@ -22,7 +22,7 @@ describe('GET /fulfillment', function () {
 
   beforeEach(function *() {
     appHelper.create(this, app)
-
+    yield dbHelper.init()
     this.clock = sinon.useFakeTimers(START_DATE, 'Date')
 
     this.proposedTransfer = _.cloneDeep(require('./data/transfers/proposed'))
@@ -34,7 +34,7 @@ describe('GET /fulfillment', function () {
     this.cancellationConditionFulfillment = _.cloneDeep(require('./data/fulfillments/cancellation'))
 
     // Reset database
-    yield dbHelper.reset()
+    // yield dbHelper.reset()
 
     yield dbHelper.addAccounts(_.values(accounts))
     yield dbHelper.addTransfers([this.proposedTransfer, this.preparedTransfer, this.executedTransfer])
@@ -121,7 +121,7 @@ describe('PUT /fulfillment', function () {
 
   beforeEach(function *() {
     appHelper.create(this, app)
-
+    yield dbHelper.init()
     this.clock = sinon.useFakeTimers(START_DATE, 'Date')
 
     this.proposedTransfer = _.cloneDeep(require('./data/transfers/proposed'))
@@ -135,7 +135,7 @@ describe('PUT /fulfillment', function () {
     this.cancellationConditionFulfillment = _.cloneDeep(require('./data/fulfillments/cancellation'))
 
     // Reset database
-    yield dbHelper.reset()
+    // yield dbHelper.reset()
 
     yield dbHelper.addAccounts(_.values(accounts))
   })
