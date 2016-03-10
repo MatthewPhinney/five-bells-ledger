@@ -6,6 +6,7 @@ const Model = require('five-bells-shared').Model
 const PersistentModelMixin = require('five-bells-shared').PersistentKnexModelMixin
 const validator = require('../../services/validator')
 const uri = require('../../services/uriManager')
+const InvalidUriParameterError = require('five-bells-shared').InvalidUriParameterError
 
 const FINAL_STATES = require('five-bells-shared').TransferStateDictionary.finalStates
 const knex = require('../../lib/knex').knex
@@ -14,13 +15,25 @@ class Transfer extends Model {
   static convertFromExternal (data) {
     // ID is optional on the incoming side
     if (data.id) {
-      data.id = uri.parse(data.id, 'transfer').id.toLowerCase()
+      try {
+        data.id = uri.parse(data.id, 'transfer').id.toLowerCase()
+      } catch (e) {
+        throw new InvalidUriParameterError(e.message)
+      }
     }
     for (let debit of data.debits) {
-      debit.account = uri.parse(debit.account, 'account').name.toLowerCase()
+      try {
+        debit.account = uri.parse(debit.account, 'account').name.toLowerCase()
+      } catch (e) {
+        throw new InvalidUriParameterError(e.message)
+      }
     }
     for (let credit of data.credits) {
-      credit.account = uri.parse(credit.account, 'account').name.toLowerCase()
+      try {
+        credit.account = uri.parse(credit.account, 'account').name.toLowerCase()
+      } catch (e) {
+        throw new InvalidUriParameterError(e.message)
+      }
     }
 
     if (typeof data.timeline === 'object') {
