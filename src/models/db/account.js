@@ -21,6 +21,8 @@ class Account extends Model {
 
     if (data.balance) {
       data.balance = Number(data.balance)
+    } else {
+      data.balance = 0
     }
 
     // Passing in a password hash is a potential DoS vector because the hash
